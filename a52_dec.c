@@ -36,6 +36,17 @@
 
 #include "a52dec.h"
 
+a52_state_t * (*a52_init) (uint32_t);
+sample_t * (*a52_samples) (a52_state_t *);
+int (*a52_syncinfo) (uint8_t * , int * , int * , int * );
+int (*a52_frame) (a52_state_t * , uint8_t * , int * , level_t * , sample_t );
+int (*a52_block) (a52_state_t * );
+void (*a52_free) (a52_state_t * );
+
+void *a52_handle;
+
+a52_state_t * state;
+
 
 // try to dynamically load and wrap liba52.so.0
 
