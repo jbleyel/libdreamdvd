@@ -26,6 +26,8 @@
  * part of libdreamdvd
  */
 
+#include <poll.h>
+
 #include "main.h"
 #include "mpegaudioenc.h"
 #include "a52dec.h"
@@ -1880,40 +1882,52 @@ send_message:
 		// be displayed to soon, but we we have to accept it
 		signed long long spudiff = pts - spupts + 255;
 #else
-		struct video_event event;
-		if (!ioctl(ddvd_fdvideo, VIDEO_GET_EVENT, &event)) {
-			switch(event.type) {
-				case VIDEO_EVENT_SIZE_CHANGED:
-				{
-					struct ddvd_size_evt evt;
-					int msg = DDVD_SIZE_CHANGED;
-					evt.width = event.u.size.w;
-					evt.height = event.u.size.h;
-					evt.aspect = event.u.size.aspect_ratio;
-					safe_write(message_pipe, &msg, sizeof(int));
-					safe_write(message_pipe, &evt, sizeof(evt));
-					Debug(3, "video size: %dx%d@%d\n", evt.width, evt.height, evt.aspect);
-					break;
-				}
-				case VIDEO_EVENT_FRAME_RATE_CHANGED:
-				{
-					struct ddvd_framerate_evt evt;
-					int msg = DDVD_FRAMERATE_CHANGED;
-					evt.framerate = event.u.frame_rate;
-					safe_write(message_pipe, &msg, sizeof(int));
-					safe_write(message_pipe, &evt, sizeof(evt));
-					Debug(3, "framerate: %d\n", evt.framerate);
-					break;
-				}
-				case 16: // VIDEO_EVENT_PROGRESSIVE_CHANGED
-				{
-					struct ddvd_progressive_evt evt;
-					int msg = DDVD_PROGRESSIVE_CHANGED;
-					evt.progressive = event.u.frame_rate;
-					safe_write(message_pipe, &msg, sizeof(int));
-					safe_write(message_pipe, &evt, sizeof(evt));
-					Debug(3, "progressive: %d\n", evt.progressive);
-					break;
+		// poll is required for some boxes here (e.g. sf8008)
+		// otherwise the ioctl for VIDEO_GET_EVENT may block after some time
+		// and video keeps black
+		// also enigma2 is not able to join the thread and therefor it hangs
+		// forever to stop dvd playback
+		int retval;
+		struct pollfd pfd[1];
+		pfd[0].fd = ddvd_fdvideo;
+		pfd[0].events = POLLPRI;
+		retval = poll(pfd, 1, 0);
+		if (retval > 0) {
+			struct video_event event;
+			if (!ioctl(ddvd_fdvideo, VIDEO_GET_EVENT, &event)) {
+				switch(event.type) {
+					case VIDEO_EVENT_SIZE_CHANGED:
+					{
+						struct ddvd_size_evt evt;
+						int msg = DDVD_SIZE_CHANGED;
+						evt.width = event.u.size.w;
+						evt.height = event.u.size.h;
+						evt.aspect = event.u.size.aspect_ratio;
+						safe_write(message_pipe, &msg, sizeof(int));
+						safe_write(message_pipe, &evt, sizeof(evt));
+						Debug(3, "video size: %dx%d@%d\n", evt.width, evt.height, evt.aspect);
+						break;
+					}
+					case VIDEO_EVENT_FRAME_RATE_CHANGED:
+					{
+						struct ddvd_framerate_evt evt;
+						int msg = DDVD_FRAMERATE_CHANGED;
+						evt.framerate = event.u.frame_rate;
+						safe_write(message_pipe, &msg, sizeof(int));
+						safe_write(message_pipe, &evt, sizeof(evt));
+						Debug(3, "framerate: %d\n", evt.framerate);
+						break;
+					}
+					case 16: // VIDEO_EVENT_PROGRESSIVE_CHANGED
+					{
+						struct ddvd_progressive_evt evt;
+						int msg = DDVD_PROGRESSIVE_CHANGED;
+						evt.progressive = event.u.frame_rate;
+						safe_write(message_pipe, &msg, sizeof(int));
+						safe_write(message_pipe, &evt, sizeof(evt));
+						Debug(3, "progressive: %d\n", evt.progressive);
+						break;
+					}
 				}
 			}
 		}
