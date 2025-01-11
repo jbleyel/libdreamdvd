@@ -1977,6 +1977,8 @@ send_message:
 		 * (FIXME: why do we need this last check?, maybe doing this last check is just enough...)
 		 * Or when vpts < pts check that the previous_spupts < spupts ...
 		 */
+		Debug(2, "TEST SPU ddvd_spu_play=%d ddvd_spu_ind=%d spudiff=%d vpts=%llu pts=%llu spupts=%llu\n",ddvd_spu_play,ddvd_spu_ind,spudiff,vpts,pts,spupts);
+
 		if (ddvd_spu_play < ddvd_spu_ind && spudiff >= 0 && (vpts > pts || spupts+5 > vpts && spudiff < 2*90000)) {
 			memset(ddvd_lbb, 0, 720 * 576); // Clear decode buffer
 			cur_spu_return = ddvd_spu_decode_data(ddvd_lbb, ddvd_spu[ddvd_spu_play % NUM_SPU_BACKBUFFER], spupts); // decode
