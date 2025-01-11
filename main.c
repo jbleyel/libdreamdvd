@@ -122,6 +122,7 @@ err:
 // create ddvd handle and set defaults
 struct ddvd *ddvd_create(void)
 {
+    Debug(2, "ddvd_create\n");
 	struct ddvd *pconfig;
 	int i;
 
