@@ -146,7 +146,8 @@ struct ddvd *ddvd_create(void)
 	ddvd_set_language(pconfig, "en");
 	ddvd_set_dvd_path(pconfig, "/dev/cdroms/cdrom0");
 	ddvd_set_video(pconfig, DDVD_4_3, DDVD_LETTERBOX, DDVD_PAL);
-	ddvd_set_lfb(pconfig, NULL, 720, 576, 1, 720);
+	ddvd_set_lfb_ex(pconfig, NULL, 720, 576, 4, 720*4, 1);
+	//ddvd_set_lfb(pconfig, NULL, 720, 576, 1, 720);
 	struct ddvd_resume resume_info;
 	resume_info.title = resume_info.chapter = resume_info.block = resume_info.audio_id =
 						resume_info.audio_lock = resume_info.spu_id = resume_info.spu_lock = 0;
