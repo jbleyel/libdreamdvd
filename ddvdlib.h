@@ -67,7 +67,7 @@ int ddvd_get_messagepipe_fd(struct ddvd *pconfig);
 // bypp-> bytes per pixel, only 1 (8bit) or 4 (32bit argb) is supported
 // stride-> line length in bytes, normally xres*bypp but not always like on the DM7025 framebuffer
 // canscale-> caller supports ddvd_get_blit_destination
-void ddvd_set_lfb(struct ddvd *pconfig, unsigned char *lfb, int xres, int yres, int bypp, int stride);
+//void ddvd_set_lfb(struct ddvd *pconfig, unsigned char *lfb, int xres, int yres, int bypp, int stride);
 void ddvd_set_lfb_ex(struct ddvd *pconfig, unsigned char *lfb, int xres, int yres, int bypp, int stride, int canscale);
 
 // set path to a dvd block device, a dvd file structure or an dvd iso-file ("/dev/dvd" ...)

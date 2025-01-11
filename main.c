@@ -212,11 +212,12 @@ void ddvd_set_resume_pos(struct ddvd *pconfig, struct ddvd_resume resume_info)
 }
 
 // set framebuffer options
+/*
 void ddvd_set_lfb(struct ddvd *pconfig, unsigned char *lfb, int xres, int yres, int bypp, int stride)
 {
 	return ddvd_set_lfb_ex(pconfig, lfb, xres, yres, bypp, stride, 0);
 }
-
+*/
 void ddvd_set_lfb_ex(struct ddvd *pconfig, unsigned char *lfb, int xres, int yres, int bypp, int stride, int canscale)
 {
 	pconfig->lfb      = lfb;
@@ -650,8 +651,8 @@ enum ddvd_result ddvd_run(struct ddvd *playerconfig)
 	// on 4bpp mode we use bicubic resize for sd skins because we get much better results with subtitles and the speed is ok
 	// for hd skins we use nearest neighbor resize because upscaling to hd is too slow with bicubic resize
 	// for bypp != 0 resize function is set in spu/highlight code
-	if (ddvd_screeninfo_bypp == 1)
-		ddvd_resize_pixmap = &ddvd_resize_pixmap_1bpp;
+//	if (ddvd_screeninfo_bypp == 1)
+//		ddvd_resize_pixmap = &ddvd_resize_pixmap_1bpp;
 
 	uint8_t *last_iframe = NULL;
 
@@ -2025,6 +2026,7 @@ send_message:
 					ddvd_spu_timer_active = 1;
 					ddvd_spu_timer_end = now + cur_spu_return.display_time * 10; //ms
 					Debug(3, "    drawing subtitle, vpts=%llu pts=%llu highlight=%d\n", vpts, pts, have_highlight);
+					/*
 					if (ddvd_screeninfo_bypp == 1) {
 						struct ddvd_color colnew;
 						int ctmp;
@@ -2040,7 +2042,8 @@ send_message:
 						msg = DDVD_NULL;
 						memcpy(ddvd_lbb2, ddvd_lbb, 720 * 576);
 					}
-					else {
+					else */
+					{
 						ddvd_resize_pixmap = (ddvd_screeninfo_xres > 720) ?    // Set resize function
 										&ddvd_resize_pixmap_xbpp : &ddvd_resize_pixmap_xbpp_smooth;
 						memset(ddvd_lbb2, 0, ddvd_screeninfo_stride * ddvd_screeninfo_yres);    // Clear backbuffer ..
@@ -2100,12 +2103,14 @@ send_message:
 
 				// get and set clut for actual button
 				int i;
+				/*
 				if (ddvd_screeninfo_bypp == 1) {
 					msg = DDVD_COLORTABLE_UPDATE;
 					safe_write(message_pipe, &msg, sizeof(int));
 				}
 				else
-					ddvd_resize_pixmap = &ddvd_resize_pixmap_xbpp; // set resize function
+				*/
+				ddvd_resize_pixmap = &ddvd_resize_pixmap_xbpp; // set resize function
 
 				//CHANGE COLORMAP from highlight data, used in ddvd_blit_to_argb()
 				for (i = 0; i < 4; i++) {
@@ -2117,8 +2122,8 @@ send_message:
 					colnew.green = ddvd_gn[i + 252] = ddvd_gn[tmp];
 					colnew.red = ddvd_rd[i + 252] = ddvd_rd[tmp];
 					colnew.trans = ddvd_tr[i + 252] = (0xF - tmp2) * 0x1111;
-					if (ddvd_screeninfo_bypp == 1)
-						safe_write(message_pipe, &colnew, sizeof(struct ddvd_color));
+					//if (ddvd_screeninfo_bypp == 1)
+					//	safe_write(message_pipe, &colnew, sizeof(struct ddvd_color));
 				}
 				msg = DDVD_NULL;
 
@@ -2126,10 +2131,10 @@ send_message:
 				Debug(4, "        clear ddvd_lbb2, backbuffer, new button to come\n");
 				//copy button into screen
 				for (i = hl.sy; i < hl.ey; i++) {
-					if (ddvd_screeninfo_bypp == 1)
-						memcpy(ddvd_lbb2 + hl.sx + 720 * i,
-								ddvd_lbb + hl.sx + 720 * i, hl.ex - hl.sx);
-					else
+					//if (ddvd_screeninfo_bypp == 1)
+					//	memcpy(ddvd_lbb2 + hl.sx + 720 * i,
+					//			ddvd_lbb + hl.sx + 720 * i, hl.ex - hl.sx);
+					//else
 						ddvd_blit_to_argb(ddvd_lbb2 + (hl.sx + 720 * i) * ddvd_screeninfo_bypp,
 											ddvd_lbb + hl.sx + 720 * i, hl.ex - hl.sx);
 				}
@@ -2163,8 +2168,8 @@ send_message:
 			int y_source = ddvd_have_ntsc ? 480 : 576; // correct ntsc overlay
 			int x_offset = calc_x_scale_offset(dvd_aspect, tv_mode, tv_mode2, tv_aspect);
 			int y_offset = calc_y_scale_offset(dvd_aspect, tv_mode, tv_mode2, tv_aspect);
+			/*
 			int resized = 0;
-
 			if ((x_offset != 0 || y_offset != 0 || y_source != ddvd_screeninfo_yres ||
 				ddvd_screeninfo_xres != 720) && !playerconfig->canscale) {
 				// decide which resize routine we should use
@@ -2179,7 +2184,7 @@ send_message:
 				//Debug(4, "needed time for resizing: %d ms\n", (int)(ddvd_get_time() - start));
 				Debug(4, "resized to: %dx%d %dx%d\n", blit_area.x_start, blit_area.y_start, blit_area.x_end, blit_area.y_end);
 			}
-
+			
 			if (resized) {
 				blit_area.x_offset = 0;
 				blit_area.y_offset = 0;
@@ -2187,11 +2192,12 @@ send_message:
 				blit_area.height = 576;
 			}
 			else {
+			*/
 				blit_area.x_offset = x_offset;
 				blit_area.y_offset = y_offset;
 				blit_area.width = ddvd_screeninfo_xres;
 				blit_area.height = ddvd_screeninfo_yres;
-			}
+		//	}
 			memcpy(p_lfb, ddvd_lbb2, ddvd_screeninfo_xres * ddvd_screeninfo_yres * ddvd_screeninfo_bypp); //copy backbuffer into screen
 			Debug(4, "fill p_lfb from ddvd_lbb2, backbuffer with new button/subtitle\n");
 			int msg_old = msg; // Save and restore msg it may not be empty
